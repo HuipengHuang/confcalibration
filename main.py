@@ -16,7 +16,7 @@ parser.add_argument("--algorithm",'-alg', default="cp", choices=["standard", "cp
 parser.add_argument("--load", default="False", type=str, choices=["True", "False"])
 parser.add_argument("--predictor", default=None, type=str, choices=["local", "cluster"])
 parser.add_argument("--save_model", default=None, type=str, choices=["True", "False"])
-parser.add_argument("--train_one_model_first", default="True", type=str, choices=["True", "False"])
+parser.add_argument("--train_one_model_first", default="False", type=str, choices=["True", "False"])
 
 #Tuning bias hyperparameter
 parser.add_argument("--method", default=None, type=str, choices=["ts", "vs", "ps","conftr"])
