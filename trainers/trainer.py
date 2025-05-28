@@ -35,9 +35,14 @@ class Trainer:
         self.model.train()
 
         for epoch in range(epochs):
+            self.adjust_learning_rate(epoch)
             for data, target in tqdm(data_loader, desc=f"Epoch: {epoch} / {epochs}"):
                 self.train_batch(data, target)
 
         if self.args.save_model == "True":
             models.utils.save_model(self.args, self.model)
+
+    def adjust_learning_rate(self, epoch):
+        if epoch == 60 or epoch == 120 or epoch == 160:
+            self.optimizer.param_groups[0]['lr'] = self.optimizer.param_groups[0]['lr'] / 5
 
