@@ -1,8 +1,12 @@
 import os
-
 import torch
 import torchvision.models as models
-def build_model(model_type, pretrained, num_classes, device, args):
+from .model import TemperatureScaling, VectorScaling, PlattScaling, ConfTr, BaseModel
+def build_net(device, args):
+    model_type = args.model
+    pretrained = (args.pretrained == "True")
+    num_classes = args.num_classes
+
     if model_type == 'resnet18':
         net = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1 if pretrained else None)
     elif model_type == "resnet34":
@@ -25,11 +29,28 @@ def build_model(model_type, pretrained, num_classes, device, args):
     if hasattr(net, "fc"):
         net.fc = torch.nn.Linear(net.fc.in_features, num_classes)
     else:
-            net.classifier = torch.nn.Linear(net.classifier.in_features, num_classes)
+        net.classifier = torch.nn.Linear(net.classifier.in_features, num_classes)
 
     if args.load == "True":
         load_model(args, net)
     return net.to(device)
+
+def build_model(device, args):
+    net = build_net(device, args)
+    method = args.method
+    if method is None:
+        model = BaseModel(net, device, args)
+    elif method == "ts":
+        model = TemperatureScaling(net, device, args)
+    elif method == "vs":
+        model = VectorScaling(net, device, args)
+    elif method == "ps":
+        model = PlattScaling(net, device, args)
+    elif method == "conftr":
+        model = ConfTr(net, device, args)
+    else:
+        raise NotImplementedError
+    return model
 
 def load_model(args, net):
         p = f"./data/{args.dataset}_{args.model}{0}net.pth"

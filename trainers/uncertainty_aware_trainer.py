@@ -11,15 +11,15 @@ class UncertaintyAwareTrainer(Trainer):
     PAPER: Training Uncertainty-Aware Classifiers with Conformalized Deep Learning
     LINK: https://arxiv.org/pdf/2205.05878
     """
-    def __init__(self, args, num_classes):
-        super().__init__(args, num_classes)
+    def __init__(self, args):
+        super().__init__(args)
 
     @overrides
     def train(self, data_loader, epochs):
         """This method is modified because
          uncertainty-aware training requires randomly split the training data into two disjoint set."""
         pred_set, calibrate_set = utils.split_dataloader(data_loader, 0.5)
-        self.net.train()
+        self.model.train()
         if self.adapter is None:
             for epoch in range(epochs):
                 pred_loader = DataLoader(pred_set, batch_size=self.batch_size, shuffle=True, drop_last=True)

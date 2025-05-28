@@ -5,16 +5,14 @@ import torch
 from torchvision.datasets import CIFAR100
 from torchvision.datasets import CIFAR10
 
-def build_dataset(args):
+
+def build_train_dataloader(args):
     dataset_name = args.dataset
 
     if dataset_name == "cifar10":
-        num_class = 10
-        train_dataset = CIFAR10(root='./data/dataset', train=True, download=False,transform=transforms.Compose([transforms.ToTensor()]))
-        cal_test_dataset = CIFAR10(root='./data/dataset', train=False, download=False,
-                                 transform=transforms.Compose([transforms.ToTensor()]))
+        train_dataset = CIFAR10(root='./data/dataset', train=True, download=False,
+                                transform=transforms.Compose([transforms.ToTensor()]))
     elif dataset_name == "cifar100":
-        num_class = 100
         train_transform = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
@@ -22,27 +20,12 @@ def build_dataset(args):
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
 
-        val_transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-        ])
-
         train_dataset = CIFAR100(root="./data/dataset", download=True, train=True, transform=train_transform)
-        cal_test_dataset = CIFAR100(root='./data/dataset', download=True, train=False,
-                                 transform=val_transform)
 
     elif dataset_name == "imagenet":
-        num_class = 1000
         train_transform = transforms.Compose([
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ])
-
-        val_transform = transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
@@ -52,20 +35,72 @@ def build_dataset(args):
             root="/data/dataset/imagenet/images/train",
             transform=train_transform
         )
+    else:
+        raise NotImplementedError
 
-        cal_test_dataset = torchvision.datasets.ImageFolder(
+    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=8)
+    return train_loader
+
+
+def build_cal_test_loader(args):
+    dataset_name = args.dataset
+
+    if dataset_name == "cifar10":
+        num_class = 10
+        val_dataset = CIFAR10(root='./data/dataset', train=False, download=True,
+                                 transform=transforms.Compose([transforms.ToTensor()]))
+    elif dataset_name == "cifar100":
+        num_class = 100
+
+        val_transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ])
+
+        val_dataset = CIFAR100(root='./data/dataset', download=False, train=False,
+                                 transform=val_transform)
+
+    elif dataset_name == "imagenet":
+        num_class = 1000
+
+        val_transform = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ])
+
+        val_dataset = torchvision.datasets.ImageFolder(
             root="/data/dataset/imagenet/images/val",
             transform=val_transform
         )
-
-    if args.algorithm != "standard":
-        cal_size = int(len(cal_test_dataset) * args.cal_ratio)
-        test_size = len(cal_test_dataset) - cal_size
-        cal_dataset, test_dataset = random_split(cal_test_dataset, [cal_size, test_size])
     else:
-        cal_dataset, test_dataset = None, cal_test_dataset
+        raise NotImplementedError
+
+    if args.algorithm == "standard":
+        cal_loader, tune_loader= None, None
+        test_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
+    elif args.tune_num:
+        assert args.tune_num < args.cal_num
+        cal_size = args.cal_num
+        test_size = len(val_dataset) - cal_size
+        cal_dataset, test_dataset = random_split(val_dataset, [cal_size, test_size])
+        tune_dataset = Subset(cal_dataset, range(args.tune_num))
+
+        cal_loader = DataLoader(tune_dataset, batch_size=args.batch_size, shuffle=False)
+        tune_loader = DataLoader(tune_dataset, batch_size=args.batch_size, shuffle=False)
+        test_loader = DataLoader(test_dataset, batch_size=max(args.batch_size, 100), shuffle=False)
+    else:
+        cal_size = args.cal_num
+        test_size = len(val_dataset) - cal_size
+        cal_dataset, test_dataset = random_split(val_dataset, [cal_size, test_size])
+
+        cal_loader = DataLoader(cal_dataset, batch_size=args.batch_size, shuffle=False)
+        tune_loader = None
+        test_loader = DataLoader(test_dataset, batch_size=max(args.batch_size, 100), shuffle=False)
+
     args.num_classes = num_class
-    return train_dataset, cal_dataset, test_dataset, num_class
+    return cal_loader, tune_loader, test_loader
 
 
 def split_dataloader(original_dataloader, split_ratio=0.5):

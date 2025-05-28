@@ -1,8 +1,8 @@
 from .trainer import Trainer
 from .uncertainty_aware_trainer import UncertaintyAwareTrainer
-def get_trainer(args, num_classes):
+def get_trainer(args):
     if args.algorithm == "uatr":
-        trainer = UncertaintyAwareTrainer(args, num_classes)
+        trainer = UncertaintyAwareTrainer(args)
     else:
-        trainer = Trainer(args, num_classes)
+        trainer = Trainer(args)
     return trainer

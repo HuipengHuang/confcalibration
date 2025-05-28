@@ -8,23 +8,23 @@ class Trainer:
     """
     Trainer class that implement all the functions regarding training.
     All the arguments are passed through args."""
-    def __init__(self, args, num_classes):
+    def __init__(self, args):
         self.args = args
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.net = models.utils.build_model(args.model, (args.pretrained == "True"), num_classes=num_classes, device=self.device, args=args)
+        self.model = models.utils.build_model(device=self.device, args=args)
         self.batch_size = args.batch_size
 
-        self.optimizer = get_optimizer(args, self.net)
+        self.optimizer = get_optimizer(args, self.model)
 
-        self.predictor = get_predictor(args, self.net)
+        self.predictor = get_predictor(args, self.model)
 
-        self.num_classes = num_classes
+        self.num_classes = args.num_classes
         self.loss_function = get_loss_function(args, self.predictor)
 
     def train_batch(self, data, target):
         data = data.to(self.device)
         target = target.to(self.device)
-        logits = self.net(data)
+        logits = self.model(data)
         loss = self.loss_function(logits, target)
         self.optimizer.zero_grad()
         loss.backward()
@@ -32,12 +32,12 @@ class Trainer:
 
 
     def train(self, data_loader, epochs):
-        self.net.train()
+        self.model.train()
 
         for epoch in range(epochs):
             for data, target in tqdm(data_loader, desc=f"Epoch: {epoch} / {epochs}"):
                 self.train_batch(data, target)
 
         if self.args.save_model == "True":
-            models.utils.save_model(self.args, self.net)
+            models.utils.save_model(self.args, self.model)
 
