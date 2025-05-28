@@ -83,7 +83,7 @@ def build_cal_test_loader(args):
         cal_loader, tune_loader= None, None
         test_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
     elif args.tune_num:
-        assert args.tune_num < args.cal_num
+        assert args.tune_num <= args.cal_num
         cal_size = args.cal_num
         test_size = len(val_dataset) - cal_size
         cal_dataset, test_dataset = random_split(val_dataset, [cal_size, test_size])
