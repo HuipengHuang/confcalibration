@@ -33,6 +33,8 @@ def tune(args):
     bf_covgap = []
     aft_covgap = []
     tuning_bias_list = []
+    bf_coverage = []
+    aft_coverage = []
 
     if args.train_one_model_first == "True":
         train_one_model_first(args)
@@ -78,6 +80,8 @@ def tune(args):
 
         bf_covgap.append(abs(bf_tune_result_dict["Coverage"] - (1 - args.alpha)))
         aft_covgap.append(abs(aft_tune_result_dict["Coverage"] - (1 - args.alpha)))
+        bf_coverage.append(bf_tune_result_dict["Coverage"])
+        aft_coverage.append(aft_tune_result_dict["Coverage"])
         tuning_bias_list.append(tuning_bias)
 
         if args.save == "True":
@@ -100,6 +104,8 @@ def tune(args):
     save_exp_result(args, mean_result_dict, path=f"./experiment/{args.algorithm}/mean_result")
     print("Mean Result")
     print("mean_tuning_bias: ", mean_tuning_bias)
+    print("mean_bf_covgap: ", mean_bf_covgap)
+    print("mean_aft_covgap: ", mean_aft_covgap)
 
 def standard(args):
     for run in range(args.num_runs):
