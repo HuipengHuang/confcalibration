@@ -36,6 +36,7 @@ def tune(args):
     bf_coverage = []
     aft_coverage = []
 
+
     if args.train_one_model_first == "True":
         train_one_model_first(args)
 
@@ -94,13 +95,21 @@ def tune(args):
     mean_bf_covgap = np.mean(bf_covgap)
     mean_aft_covgap = np.mean(aft_covgap)
     mean_tuning_bias = np.mean(tuning_bias_list)
+    mean_bf_coverage = np.mean(bf_coverage)
+    mean_aft_coverage = np.mean(aft_coverage)
 
     std_bf_covgap = np.std(bf_covgap)
     std_aft_covgap = np.std(aft_covgap)
     std_tuning_bias = np.std(tuning_bias_list)
+    std_bf_coverage = np.std(bf_coverage)
+    std_aft_coverage = np.std(aft_coverage)
 
     mean_result_dict = {"num_runs":args.num_runs, "mean_bf_covgap": mean_bf_covgap,"mean_aft_covgap":mean_aft_covgap, "mean_tuning_bias":mean_tuning_bias,
-                        "std_bf_covgap":std_bf_covgap, "std_aft_covgap":std_aft_covgap, "std_tuning_bias":std_tuning_bias}
+                        "mean_bf_coverage": mean_bf_coverage, "mean_aft_coverage": mean_aft_coverage,
+                        "std_bf_covgap": std_bf_covgap, "std_aft_covgap": std_aft_covgap,
+                        "std_tuning_bias": std_tuning_bias, "std_bf_coverage": std_bf_coverage,
+                        "std_aft_coverage": std_aft_coverage
+                        }
     save_exp_result(args, mean_result_dict, path=f"./experiment/{args.algorithm}/mean_result")
     print("Mean Result")
     print("mean_tuning_bias: ", mean_tuning_bias)
