@@ -85,8 +85,6 @@ def tune(args):
         aft_coverage.append(aft_tune_result_dict["Coverage"])
         tuning_bias_list.append(tuning_bias)
 
-        if args.save == "True":
-            save_exp_result(args, final_result_dict)
 
     bf_covgap = np.array(bf_covgap)
     aft_covgap = np.array(aft_covgap)
