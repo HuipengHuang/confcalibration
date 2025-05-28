@@ -34,7 +34,8 @@ def tune(args):
     aft_covgap = []
     tuning_bias_list = []
 
-    train_one_model_first(args)
+    if args.train_one_model_first == "True":
+        train_one_model_first(args)
 
     for run in range(args.num_runs):
         seed = args.seed

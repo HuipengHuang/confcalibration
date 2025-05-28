@@ -21,7 +21,7 @@ def build_train_dataloader(args):
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
 
-        train_dataset = CIFAR100(root="./data/dataset", download=True, train=True, transform=train_transform)
+        train_dataset = CIFAR100(root="/mnt/sharedata/ssd3/common/datasets/cifar-100-python/cifar-100-python", download=False, train=True, transform=train_transform)
         num_classes = 100
     elif dataset_name == "imagenet":
         train_transform = transforms.Compose([
@@ -59,7 +59,7 @@ def build_cal_test_loader(args):
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
 
-        val_dataset = CIFAR100(root='./data/dataset', download=False, train=False,
+        val_dataset = CIFAR100(root='/mnt/sharedata/ssd3/common/datasets/cifar-100-python/cifar-100-python', download=False, train=False,
                                  transform=val_transform)
 
     elif dataset_name == "imagenet":

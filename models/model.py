@@ -157,7 +157,8 @@ class ConfTr(BaseModel):
         self.alpha = 0.01
 
 
-    def forward(self, logits):
+    def forward(self, x):
+        logits = self.net(x)
         return torch.matmul(logits, self.projection_weight.T) + self.projection_bias
 
     def tune(self, tune_loader):
