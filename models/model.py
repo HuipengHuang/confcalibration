@@ -35,7 +35,7 @@ class TemperatureScaling(BaseModel):
         return self.net(x) / self.T
 
     def tune(self, tune_loader):
-        self.net.train()
+        self.net.eval()
         self.T = nn.Parameter(torch.tensor([1.5]).to(self.device), requires_grad=True)
         optimizer = optim.LBFGS([self.T], lr=0.1, max_iter=200)
 
@@ -72,7 +72,7 @@ class PlattScaling(BaseModel):
 
 
     def tune(self, tune_loader):
-        self.net.train()
+        self.net.eval()
         self.a = nn.Parameter(torch.tensor([1.5]).to(self.device), requires_grad=True)
         self.b = nn.Parameter(torch.tensor([1.5]).to(self.device), requires_grad=True)
 
