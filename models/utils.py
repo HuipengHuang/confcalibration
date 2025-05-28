@@ -26,10 +26,11 @@ def build_net(device, args):
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
 
-    if hasattr(net, "fc"):
-        net.fc = torch.nn.Linear(net.fc.in_features, num_classes)
-    else:
-        net.classifier = torch.nn.Linear(net.classifier.in_features, num_classes)
+    if args.dataset != "imagenet":
+        if hasattr(net, "fc"):
+            net.fc = torch.nn.Linear(net.fc.in_features, num_classes)
+        else:
+            net.classifier = torch.nn.Linear(net.classifier.in_features, num_classes)
 
     if args.load == "True":
         load_model(args, net)

@@ -33,7 +33,7 @@ def build_train_dataloader(args):
 
         # Load datasets
         train_dataset = torchvision.datasets.ImageFolder(
-            root="/data/dataset/imagenet/images/train",
+            root="/mnt/sharedata/ssd3/common/datasets/imagenet/images/train",
             transform=train_transform
         )
         num_classes = 1000
@@ -73,7 +73,7 @@ def build_cal_test_loader(args):
         ])
 
         val_dataset = torchvision.datasets.ImageFolder(
-            root="/data/dataset/imagenet/images/val",
+            root="/mnt/sharedata/ssd3/common/datasets/imagenet/images/val",
             transform=val_transform
         )
     else:
