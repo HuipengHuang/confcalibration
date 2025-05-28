@@ -165,7 +165,7 @@ class ConfTr(BaseModel):
         return torch.matmul(logits, self.projection_weight.T) + self.projection_bias
 
     def tune(self, tune_loader):
-        self.net.train()
+        self.net.eval()
         self.projection_weight = nn.Parameter(torch.eye(self.args.num_classes, device=self.device), requires_grad=True)
         self.projection_bias = nn.Parameter(torch.zeros(self.args.num_classes, device=self.device), requires_grad=True)
         Criterion = nn.CrossEntropyLoss()
