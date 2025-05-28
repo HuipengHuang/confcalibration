@@ -62,10 +62,12 @@ def tune(args):
         tuning_bias = abs(aft_tune_result_dict["Coverage"] - (1 - args.alpha)) -  abs(bf_tune_result_dict["Coverage"] - (1 - args.alpha))
         final_result_dict = {"TuningBias": tuning_bias}
 
+        print("Before tuning: ")
         for key, value in bf_tune_result_dict.items():
-            print(f'Before tuning: {key}: {value}')
+            print(f'{key}: {value}')
+        print("After tuning:")
         for key, value in aft_tune_result_dict.items():
-            print(f'Before tuning: {key}: {value}')
+            print(f'{key}: {value}')
         print("Tuning Bias: ", tuning_bias)
         print()
         for key, value in bf_tune_result_dict.items():
