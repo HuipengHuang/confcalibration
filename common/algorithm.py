@@ -98,7 +98,8 @@ def tune(args):
     mean_result_dict = {"num_runs":args.num_runs, "mean_bf_covgap": mean_bf_covgap,"mean_aft_covgap":mean_aft_covgap, "mean_tuning_bias":mean_tuning_bias,
                         "std_bf_covgap":std_bf_covgap, "std_aft_covgap":std_aft_covgap, "std_tuning_bias":std_tuning_bias}
     save_exp_result(args, mean_result_dict, path=f"./experiment/{args.algorithm}/mean_result")
-
+    print("Mean Result")
+    print("mean_tuning_bias: ", mean_tuning_bias)
 
 def standard(args):
     for run in range(args.num_runs):
