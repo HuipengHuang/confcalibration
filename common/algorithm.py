@@ -58,12 +58,16 @@ def tune(args):
         trainer.predictor.calibrate(cal_loader)
         aft_tune_result_dict = trainer.predictor.evaluate(test_loader)
 
-        for key, value in bf_tune_result_dict.items():
-            print(f'After tuning: {key}: {value}')
 
         tuning_bias = abs(aft_tune_result_dict["Coverage"] - (1 - args.alpha)) -  abs(bf_tune_result_dict["Coverage"] - (1 - args.alpha))
         final_result_dict = {"TuningBias": tuning_bias}
 
+        for key, value in bf_tune_result_dict.items():
+            print(f'Before tuning: {key}: {value}')
+        for key, value in aft_tune_result_dict.items():
+            print(f'Before tuning: {key}: {value}')
+        print("Tuning Bias: ", tuning_bias)
+        print()
         for key, value in bf_tune_result_dict.items():
             final_result_dict["bf_tune_" + key] = value
 
