@@ -118,7 +118,7 @@ class VectorScaling(BaseModel):
 
 
     def tune(self, tune_loader):
-        self.net.train()
+        self.net.eval()
         self.w = nn.Parameter((torch.ones(self.args.num_classes) * 1.5).to(self.device), requires_grad=True)
 
         self.b = nn.Parameter((torch.rand(self.args.num_classes) * 2.0 - 1.0).to(self.device), requires_grad=True)
@@ -157,7 +157,7 @@ class ConfTr(BaseModel):
         self.num_epochs = 50
         self.projection_weight = nn.Parameter(torch.eye(args.num_classes, device=device), requires_grad=False)
         self.projection_bias = nn.Parameter(torch.zeros(args.num_classes, device=device), requires_grad=False)
-        self.alpha = args.alpha
+        self.alpha = 0.01
 
 
     def forward(self, x):
