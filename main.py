@@ -68,5 +68,5 @@ if args.algorithm == "standard":
 elif args.algorithm =="cp":
     algorithm.cp(args)
 elif args.algorithm == "tune":
-    algorithm.tune()
+    algorithm.tune(args)
 

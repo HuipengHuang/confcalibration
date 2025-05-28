@@ -12,6 +12,7 @@ def build_train_dataloader(args):
     if dataset_name == "cifar10":
         train_dataset = CIFAR10(root='./data/dataset', train=True, download=False,
                                 transform=transforms.Compose([transforms.ToTensor()]))
+        num_classes = 10
     elif dataset_name == "cifar100":
         train_transform = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
@@ -21,7 +22,7 @@ def build_train_dataloader(args):
         ])
 
         train_dataset = CIFAR100(root="./data/dataset", download=True, train=True, transform=train_transform)
-
+        num_classes = 100
     elif dataset_name == "imagenet":
         train_transform = transforms.Compose([
             transforms.RandomResizedCrop(224),
@@ -35,10 +36,11 @@ def build_train_dataloader(args):
             root="/data/dataset/imagenet/images/train",
             transform=train_transform
         )
+        num_classes = 1000
     else:
         raise NotImplementedError
-
-    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=8)
+    args.num_classes = num_classes
+    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
     return train_loader
 
 

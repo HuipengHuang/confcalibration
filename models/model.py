@@ -36,7 +36,7 @@ class TemperatureScaling(BaseModel):
 
     def tune(self, tune_loader):
         self.T = nn.Parameter(torch.tensor([1.5]).to(self.device), requires_grad=True)
-        optimizer = optim.LBFGS([self.temperature], lr=0.1, max_iter=200)
+        optimizer = optim.LBFGS([self.T], lr=0.1, max_iter=200)
 
         logits_list= []
         labels_list = []
@@ -53,7 +53,7 @@ class TemperatureScaling(BaseModel):
         Criterion = nn.CrossEntropyLoss()
         def compute_loss():
             optimizer.zero_grad()
-            out = logits / self.temperature
+            out = logits / self.T
             loss = Criterion(out, labels)
             loss.backward()
             return loss

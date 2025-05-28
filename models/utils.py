@@ -60,7 +60,7 @@ def load_model(args, net):
         else:
             net.load_state_dict(torch.load(p))
 
-def save_model(args, net):
+def save_model(args, model):
     i = 0
     while (True):
         p = f"./data/{args.dataset}_{args.model}{i}net.pth"
@@ -68,6 +68,6 @@ def save_model(args, net):
         if os.path.exists(p):
             i += 1
             continue
-        torch.save(net.state_dict(), p)
+        torch.save(model.net.state_dict(), p)
         break
 
