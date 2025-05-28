@@ -154,7 +154,7 @@ class ConfTr(BaseModel):
         self.num_epochs = 50
         self.projection_weight = nn.Parameter(torch.eye(args.num_classes, device=device), requires_grad=False)
         self.projection_bias = nn.Parameter(torch.zeros(args.num_classes, device=device), requires_grad=False)
-        self.alpha = 0.01
+        self.alpha = args.alpha
 
 
     def forward(self, x):
