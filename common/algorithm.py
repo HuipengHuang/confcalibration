@@ -120,6 +120,6 @@ def train_one_model_first(args):
     args.load = "False"
     train_loader = build_train_dataloader(args)
     trainer = get_trainer(args)
-    trainer.train(train_loader, 1)
+    trainer.train(train_loader, 100)
     save_model(args, trainer.model)
     args.load = "True"
