@@ -80,17 +80,16 @@ def build_cal_test_loader(args):
         raise NotImplementedError
 
     if args.algorithm == "standard":
-        cal_loader, tune_loader= None, None
+        cal_loader, cal_tune_loader= None, None
         test_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
     elif args.tune_num:
-        assert args.tune_num <= args.cal_num
         cal_size = args.cal_num
         test_size = len(val_dataset) - cal_size
         cal_dataset, test_dataset = random_split(val_dataset, [cal_size, test_size])
-        tune_dataset = Subset(cal_dataset, range(args.tune_num))
+        tune_dataset, test_dataset = random_split(test_dataset, [cal_size, test_size - cal_size])
 
         cal_loader = DataLoader(cal_dataset, batch_size=args.batch_size, shuffle=False)
-        tune_loader = DataLoader(tune_dataset, batch_size=args.batch_size, shuffle=False)
+        cal_tune_loader = DataLoader(tune_dataset, batch_size=args.batch_size, shuffle=False)
         test_loader = DataLoader(test_dataset, batch_size=max(args.batch_size, 100), shuffle=False)
     else:
         cal_size = args.cal_num
@@ -98,11 +97,11 @@ def build_cal_test_loader(args):
         cal_dataset, test_dataset = random_split(val_dataset, [cal_size, test_size])
 
         cal_loader = DataLoader(cal_dataset, batch_size=args.batch_size, shuffle=False)
-        tune_loader = None
+        cal_tune_loader = None
         test_loader = DataLoader(test_dataset, batch_size=max(args.batch_size, 100), shuffle=False)
 
     args.num_classes = num_class
-    return cal_loader, tune_loader, test_loader
+    return cal_loader, cal_tune_loader, test_loader
 
 
 def split_dataloader(original_dataloader, split_ratio=0.5):

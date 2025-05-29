@@ -30,11 +30,11 @@ def cp(args):
             save_exp_result(args, result_dict)
 
 def tune(args):
-    bf_covgap = []
-    aft_covgap = []
+    holdout_covgap = []
+    tune_covgap = []
     tuning_bias_list = []
-    bf_coverage = []
-    aft_coverage = []
+    holdout_coverage = []
+    tune_coverage = []
 
 
     if args.train_one_model_first == "True":
@@ -45,7 +45,7 @@ def tune(args):
         if seed:
             set_seed(seed+run)
 
-        cal_loader, tune_loader, test_loader = build_cal_test_loader(args)
+        cal_loader, cal_tune_loader, test_loader = build_cal_test_loader(args)
 
         trainer = get_trainer(args)
 
@@ -53,66 +53,66 @@ def tune(args):
             train_loader = build_train_dataloader(args)
             trainer.train(train_loader, args.epochs)
 
-        trainer.predictor.calibrate(cal_loader)
-        bf_tune_result_dict = trainer.predictor.evaluate(test_loader)
-
-        trainer.model.tune(tune_loader)
+        trainer.model.tune(cal_tune_loader)
 
         trainer.predictor.calibrate(cal_loader)
-        aft_tune_result_dict = trainer.predictor.evaluate(test_loader)
+        holdout_result_dict = trainer.predictor.evaluate(test_loader)
+
+        trainer.predictor.calibrate(cal_tune_loader)
+        tune_result_dict = trainer.predictor.evaluate(test_loader)
 
 
-        tuning_bias = abs(aft_tune_result_dict["Coverage"] - (1 - args.alpha)) -  abs(bf_tune_result_dict["Coverage"] - (1 - args.alpha))
+        tuning_bias = abs(tune_result_dict["Coverage"] - (1 - args.alpha)) -  abs(holdout_result_dict["Coverage"] - (1 - args.alpha))
         final_result_dict = {"TuningBias": tuning_bias}
 
-        print("Before tuning: ")
-        for key, value in bf_tune_result_dict.items():
+        print("Using holdout calibration set: ")
+        for key, value in holdout_result_dict.items():
             print(f'{key}: {value}')
-        print("After tuning:")
-        for key, value in aft_tune_result_dict.items():
+        print("Using same set for calibration and tune: ")
+        for key, value in tune_result_dict.items():
             print(f'{key}: {value}')
         print("Tuning Bias: ", tuning_bias)
         print()
-        for key, value in bf_tune_result_dict.items():
-            final_result_dict["bf_tune_" + key] = value
+        for key, value in holdout_result_dict.items():
+            final_result_dict["holdout_" + key] = value
 
-        for key, value in aft_tune_result_dict.items():
-            final_result_dict["aft_tune_" + key] = value
+        for key, value in tune_result_dict.items():
+            final_result_dict["tune_" + key] = value
 
-        bf_covgap.append(abs(bf_tune_result_dict["Coverage"] - (1 - args.alpha)))
-        aft_covgap.append(abs(aft_tune_result_dict["Coverage"] - (1 - args.alpha)))
-        bf_coverage.append(bf_tune_result_dict["Coverage"])
-        aft_coverage.append(aft_tune_result_dict["Coverage"])
+        holdout_covgap.append(abs(holdout_result_dict["Coverage"] - (1 - args.alpha)))
+        tune_covgap.append(abs(tune_result_dict["Coverage"] - (1 - args.alpha)))
+        holdout_coverage.append(holdout_result_dict["Coverage"])
+        tune_coverage.append(tune_result_dict["Coverage"])
         tuning_bias_list.append(tuning_bias)
 
 
-    bf_covgap = np.array(bf_covgap)
-    aft_covgap = np.array(aft_covgap)
+    holdout_covgap = np.array(holdout_covgap)
+    tune_covgap = np.array(tune_covgap)
     tuning_bias_list = np.array(tuning_bias_list)
 
-    mean_bf_covgap = np.mean(bf_covgap)
-    mean_aft_covgap = np.mean(aft_covgap)
+    mean_holdout_covgap = np.mean(holdout_covgap)
+    mean_tune_covgap = np.mean(tune_covgap)
     mean_tuning_bias = np.mean(tuning_bias_list)
-    mean_bf_coverage = np.mean(bf_coverage)
-    mean_aft_coverage = np.mean(aft_coverage)
+    mean_holdout_coverage = np.mean(holdout_coverage)
+    mean_tune_coverage = np.mean(tune_coverage)
 
-    std_bf_covgap = np.std(bf_covgap)
-    std_aft_covgap = np.std(aft_covgap)
+    std_holdout_covgap = np.std(holdout_covgap)
+    std_tune_covgap = np.std(tune_covgap)
     std_tuning_bias = np.std(tuning_bias_list)
-    std_bf_coverage = np.std(bf_coverage)
-    std_aft_coverage = np.std(aft_coverage)
+    std_holdout_coverage = np.std(holdout_coverage)
+    std_tune_coverage = np.std(tune_coverage)
 
-    mean_result_dict = {"num_runs":args.num_runs, "mean_bf_covgap": mean_bf_covgap,"mean_aft_covgap":mean_aft_covgap, "mean_tuning_bias":mean_tuning_bias,
-                        "mean_bf_coverage": mean_bf_coverage, "mean_aft_coverage": mean_aft_coverage,
-                        "std_bf_covgap": std_bf_covgap, "std_aft_covgap": std_aft_covgap,
-                        "std_tuning_bias": std_tuning_bias, "std_bf_coverage": std_bf_coverage,
-                        "std_aft_coverage": std_aft_coverage
+    mean_result_dict = {"num_runs":args.num_runs, "mean_holdout_covgap": mean_holdout_covgap,"mean_tune_covgap":mean_tune_covgap, "mean_tuning_bias":mean_tuning_bias,
+                        "mean_holdout_coverage": mean_holdout_coverage, "mean_tune_coverage": mean_tune_coverage,
+                        "std_holdout_covgap": std_holdout_covgap, "std_tune_covgap": std_tune_covgap,
+                        "std_tuning_bias": std_tuning_bias, "std_holdout_coverage": std_holdout_coverage,
+                        "std_tune_coverage": std_tune_coverage
                         }
     save_exp_result(args, mean_result_dict, path=f"./experiment/{args.algorithm}/mean_result")
     print("Mean Result")
     print("mean_tuning_bias: ", mean_tuning_bias)
-    print("mean_bf_covgap: ", mean_bf_covgap)
-    print("mean_aft_covgap: ", mean_aft_covgap)
+    print("mean_holdout_covgap: ", mean_holdout_covgap)
+    print("mean_tune_covgap: ", mean_tune_covgap)
 
 def standard(args):
     for run in range(args.num_runs):
