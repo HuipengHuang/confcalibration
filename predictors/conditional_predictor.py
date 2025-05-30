@@ -40,6 +40,7 @@ class ConditionalPredictor:
             weight = nn.Parameter(torch.zeros(self.num_classes, device=self.device))
             optimizer = torch.optim.Adam([weight], lr=1e-2)
             i = 0
+            prev_loss = -1
             while True:
                 g_x = self.cal_prob @ weight
                 loss = self.pinball_loss(g_x, self.cal_score)
