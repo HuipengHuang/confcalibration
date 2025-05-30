@@ -65,7 +65,7 @@ class ConditionalPredictor:
             optimizer = torch.optim.Adam([weight], lr=1e-2)
             target_score = self.score_function(test_data_prob)
             data_prob = torch.cat((self.cal_prob, test_data_prob.view(1, -1)), dim=0)
-            pred_set = torch.zeros(size=self.num_classes, device=self.device)
+            pred_set = torch.zeros(self.num_classes, device=self.device)
             for y in range(self.num_classes):
                 prev_loss = 0
                 diff = 10
