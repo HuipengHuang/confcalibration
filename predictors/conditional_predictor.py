@@ -39,9 +39,8 @@ class ConditionalPredictor:
         if self.args.split == "True":
             weight = nn.Parameter(torch.zeros(self.num_classes, device=self.device))
             optimizer = torch.optim.Adam([weight], lr=1e-2)
-            prev_loss = 0
-            diff = 10
-            while diff > 1e-1:
+            i = 0
+            while True:
                 g_x = self.cal_prob @ weight
                 loss = self.pinball_loss(g_x, self.cal_score)
                 optimizer.zero_grad()
@@ -50,6 +49,10 @@ class ConditionalPredictor:
 
                 diff = abs(loss - prev_loss)
                 prev_loss = loss
+                i += 1
+                if diff < 1e-5 and i > 100:
+                    break
+
             self.weight = weight
 
     def calibrate_batch_logit(self, logits, target, alpha):
@@ -72,7 +75,8 @@ class ConditionalPredictor:
 
                 prev_loss = 0
                 diff = 10
-                while diff > 1e-1:
+                i = 0
+                while True:
                     g_x = data_prob @ weight
                     loss = self.pinball_loss(g_x, score)
                     diff = abs(loss.item() - prev_loss)
@@ -81,6 +85,10 @@ class ConditionalPredictor:
                     optimizer.zero_grad()
                     loss.backward()
                     optimizer.step()
+
+                    i += 1
+                    if diff < 1e-5 and i > 100:
+                        break
 
                 if target_score[y] <= test_data_prob @ weight:
                     pred_set[y] = 1
