@@ -50,7 +50,6 @@ class ConditionalPredictor:
 
                 diff = abs(loss - prev_loss)
                 prev_loss = loss
-            print("haha")
             self.weight = weight
 
     def calibrate_batch_logit(self, logits, target, alpha):
@@ -62,6 +61,7 @@ class ConditionalPredictor:
 
     def get_prediction_set(self, test_data_prob):
         if self.args.split == "False":
+            test_data_prob = test_data_prob.detach()
             target_score = self.score_function(test_data_prob)
             data_prob = torch.cat((self.cal_prob, test_data_prob.view(1, -1)), dim=0)
             pred_set = torch.zeros(self.num_classes, device=self.device)
