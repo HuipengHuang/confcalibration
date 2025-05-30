@@ -20,7 +20,7 @@ class BaseModel(nn.Module):
         self.net.train()
 
     def forward(self, x):
-        raise self.net(x)
+        return self.net(x)
 
     def tune(self, tune_loader):
         raise NotImplementedError
