@@ -74,6 +74,7 @@ class ConditionalPredictor:
                     loss = self.pinball_loss(g_x, torch.cat((self.cal_score, target_score[y].view(1)), dim=0))
                     diff = abs(loss.item() - prev_loss)
                     prev_loss = loss.item()
+                    print(prev_loss)
 
                     optimizer.zero_grad()
                     loss.backward()
