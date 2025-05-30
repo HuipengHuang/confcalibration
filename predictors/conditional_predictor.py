@@ -84,7 +84,7 @@ class ConditionalPredictor:
 
                 if target_score[y] <= test_data_prob @ weight:
                     pred_set[y] = 1
-            return torch.tensor(pred_set, device=self.device)
+            return torch.tensor(pred_set, device=self.device, dtype=torch.int)
         else:
             threshold = test_data_prob * self.weight
             target_score = self.score_function(test_data_prob)
