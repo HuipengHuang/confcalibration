@@ -68,8 +68,7 @@ class ConditionalPredictor:
             pred_set = torch.zeros(self.num_classes, device=self.device)
             for y in range(self.num_classes):
                 score = torch.cat((self.cal_score, target_score[y].view(1)), dim=0)
-                data_prob.requires_grad_(False)
-                score.requires_grad_(False)
+
                 prev_loss = 0
                 diff = 10
                 while diff > 1e-1:
@@ -79,7 +78,7 @@ class ConditionalPredictor:
                     prev_loss = loss.item()
 
                     optimizer.zero_grad()
-                    loss.backward()
+                    loss.backward(retain_graph=True)
                     optimizer.step()
 
                 if target_score[y] <= test_data_prob @ weight:
