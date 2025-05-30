@@ -50,6 +50,7 @@ class ConditionalPredictor:
 
                 diff = abs(loss - prev_loss)
                 prev_loss = loss
+            print("haha")
             self.weight = weight
 
     def calibrate_batch_logit(self, logits, target, alpha):
