@@ -61,12 +61,12 @@ class ConditionalPredictor:
 
     def get_prediction_set(self, test_data_prob):
         if self.args.split == "False":
-            weight = nn.Parameter(torch.zeros(self.num_classes, device=self.device))
-            optimizer = torch.optim.Adam([weight], lr=1e-2)
             target_score = self.score_function(test_data_prob)
             data_prob = torch.cat((self.cal_prob, test_data_prob.view(1, -1)), dim=0)
             pred_set = torch.zeros(self.num_classes, device=self.device)
             for y in range(self.num_classes):
+                weight = nn.Parameter(torch.zeros(self.num_classes, device=self.device))
+                optimizer = torch.optim.Adam([weight], lr=1e-2)
                 score = torch.cat((self.cal_score, target_score[y].view(1)), dim=0)
 
                 prev_loss = 0
@@ -78,7 +78,7 @@ class ConditionalPredictor:
                     prev_loss = loss.item()
 
                     optimizer.zero_grad()
-                    loss.backward(retain_graph=True)
+                    loss.backward()
                     optimizer.step()
 
                 if target_score[y] <= test_data_prob @ weight:
@@ -112,7 +112,7 @@ class ConditionalPredictor:
 
             for i in range(batch_size):
                 pred_set = self.get_prediction_set(prob[i])
-                print(pred_set)
+
                 total_prediction_set_size += torch.sum(pred_set)
                 if target in pred_set:
                     total_coverage += 1
