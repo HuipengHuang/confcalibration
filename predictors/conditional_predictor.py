@@ -68,6 +68,8 @@ class ConditionalPredictor:
             pred_set = torch.zeros(self.num_classes, device=self.device)
             for y in range(self.num_classes):
                 score = torch.cat((self.cal_score, target_score[y].view(1)), dim=0)
+                data_prob.requires_grad = False
+                score.requires_grad = False
                 prev_loss = 0
                 diff = 10
                 while diff > 1e-1:
