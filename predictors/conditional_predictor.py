@@ -115,7 +115,7 @@ class ConditionalPredictor:
                 pred_set = self.get_prediction_set(prob[i])
 
                 total_prediction_set_size += torch.sum(pred_set)
-                if target in pred_set:
+                if pred_set[target] == 1:
                     total_coverage += 1
                 weight = torch.rand(self.num_classes, device=self.device)
                 f_x = prob[i] @ weight
