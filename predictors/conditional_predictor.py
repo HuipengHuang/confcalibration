@@ -70,11 +70,11 @@ class ConditionalPredictor:
                 prev_loss = 0
                 diff = 10
                 while diff > 1e-1:
-                    g_x = data_prob @ weight
-                    loss = self.pinball_loss(g_x, torch.cat((self.cal_score, target_score[y].view(1)), dim=0))
+                    with torch.enable_grad():
+                        g_x = data_prob @ weight
+                        loss = self.pinball_loss(g_x, torch.cat((self.cal_score, target_score[y].view(1)), dim=0))
                     diff = abs(loss.item() - prev_loss)
                     prev_loss = loss.item()
-                    print(prev_loss)
 
                     optimizer.zero_grad()
                     loss.backward()
