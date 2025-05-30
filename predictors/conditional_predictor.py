@@ -112,6 +112,7 @@ class ConditionalPredictor:
 
             for i in range(batch_size):
                 pred_set = self.get_prediction_set(prob[i])
+                print(pred_set)
                 total_prediction_set_size += torch.sum(pred_set)
                 if target in pred_set:
                     total_coverage += 1
