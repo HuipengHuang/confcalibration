@@ -125,6 +125,7 @@ class ConditionalPredictor:
         coverage = total_coverage / total_samples
         avg_set_size = total_prediction_set_size / total_samples
         E_cond_covgap = cond_covgap / total_samples
+
         result_dict = {
             f"Top1Accuracy": accuracy,
             f"AverageSetSize": avg_set_size,
