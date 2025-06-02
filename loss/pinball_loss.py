@@ -2,7 +2,8 @@ import torch
 import torch.nn as nn
 
 class PinballLoss(nn.Module):
-    def __init__(self, alpha=0.1):
+    def __init__(self, alpha=0.9):
+        """It learns the alpha quantile not 1 - alpha quantile"""
         super(PinballLoss, self).__init__()
         self.alpha = alpha
         assert 0 < self.alpha < 1, "Alpha must be in (0, 1)."

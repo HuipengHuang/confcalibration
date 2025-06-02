@@ -14,7 +14,7 @@ class ConditionalPredictor:
         self.args = args
         self.cal_prob = None
         self.num_classes = args.num_classes
-        self.pinball_loss = PinballLoss(self.alpha)
+        self.pinball_loss = PinballLoss(1 - self.alpha)
         self.weight = None
 
     def calibrate(self, cal_loader, alpha=None):
