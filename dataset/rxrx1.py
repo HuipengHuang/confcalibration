@@ -28,10 +28,11 @@ class rxrx1_dataset(Dataset):
             metaData = pd.read_csv('data/rxrx1_v1.0/metadata.csv')
             self.metaData = metaData[metaData['dataset'] == 'test']
     def __len__(self):
-        return len(self.metaData)
+        return len(self.rx1Images)
 
     def __getitem__(self, idx):
-        return self.rx1Images[idx], self.metaData.iloc[idx]
+        return self.rx1Images[idx][0], self.rx1Images[idx][1]
+
 def initializeRxrx1Transform():
     def standardize(x: torch.Tensor) -> torch.Tensor:
         mean = x.mean(dim=(1, 2))

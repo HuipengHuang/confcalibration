@@ -19,7 +19,7 @@ class NaiveModel(nn.Module):
     def tune(self, tune_loader):
         raise NotImplementedError
 
-    def get_featurer(self):
+    def get_featurizer(self):
         featurizer = self.net
         classifier = self.net.fc
         featurizer.fc = nn.Identity()

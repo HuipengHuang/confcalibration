@@ -15,9 +15,14 @@ def cp(args):
 
         trainer = get_trainer(args)
 
+
+        train_loader = build_train_dataloader(args)
         if args.epochs:
-            train_loader = build_train_dataloader(args)
             trainer.train(train_loader, args.epochs)
+
+        if args.predictor == "condconf":
+            trainer.predictor.get_train_features(train_loader)
+            print("Train_features are processed")
 
         trainer.predictor.calibrate(cal_loader)
 
@@ -49,9 +54,14 @@ def tune(args):
 
         trainer = get_trainer(args)
 
+        train_loader = build_train_dataloader(args)
+
         if args.epochs:
-            train_loader = build_train_dataloader(args)
             trainer.train(train_loader, args.epochs)
+
+        if args.predictor == "condconf":
+            trainer.predictor.get_train_features(train_loader)
+            print("Train_features are processed")
 
         trainer.model.tune(cal_tune_loader)
 

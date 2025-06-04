@@ -3,6 +3,13 @@ import torch
 import math
 import torch.nn as nn
 from loss.pinball_loss import PinballLoss
+from sklearn.model_selection import KFold
+import numpy as np
+from tqdm import tqdm
+from sklearn.linear_model import LogisticRegression
+from .condconf import setup_cvx_problem_calib
+import cvxpy as cp
+
 
 class CondConfPredictor:
     def __init__(self, args, model):
@@ -15,47 +22,96 @@ class CondConfPredictor:
         self.cal_prob = None
         self.num_classes = args.num_classes
         self.pinball_loss = PinballLoss(1 - self.alpha)
-        self.weight = None
         self.featurizer = self.model.get_featurizer()
 
-    def calibrate(self, cal_loader, alpha=None):
-        """ Input calibration dataloader.
-            Compute scores for all the calibration data and take the (1 - alpha) quantile."""
+        self.scoresCal = None
+        self.y_cal = None
+        self.cal_featureMap = None
+
+        self.y_train = None
+        self.train_featureMap = None
+
+    def cvForFeatures(self, X, y, numCs=20, minC=0.001, maxC=0.1):
+        folds = KFold(n_splits=5, shuffle=True)
+        Cvalues = np.linspace(minC, maxC, numCs)
+        losses = np.zeros(numCs)
+        count = 0
+        for C in tqdm(Cvalues):
+            model = LogisticRegression(C=C, max_iter=5000)
+            for i, (trainPoints, testPoints) in enumerate(folds.split(X)):
+                reg = model.fit(X[trainPoints, :], y[trainPoints])
+                predictedProbs = reg.predict_proba(X[testPoints, :])
+                for j in range(len(testPoints)):
+                    losses[count] = losses[count] - np.log(predictedProbs[j, int(y[testPoints][j])]) / len(testPoints)
+            count = count + 1
+
+        return Cvalues, losses
+
+    def get_train_features(self, train_loader):
         self.model.eval()
-        with torch.no_grad():
-            cal_score = torch.tensor([], device=self.device)
-            all_prob = torch.tensor([], device=self.device)
-            for data, target in cal_loader:
-                data = data.to(self.device)
-                target = target.to(self.device)
+        trainfeatureMap = torch.tensor([], device=self.device)
+        y_train = torch.tensor([], device=self.device, dtype=torch.int)
 
-                logits = self.model(data)
+        for data, target in train_loader:
+            data = data.to(self.device)
+            target = target.to(self.device)
 
-                prob = torch.softmax(logits, dim=1)
-                batch_score = self.score_function.compute_target_score(prob, target)
-                all_prob = torch.cat((all_prob, prob), dim=0)
-                cal_score = torch.cat((cal_score, batch_score), 0)
-            self.cal_score = cal_score
-            self.cal_prob = all_prob
-        if self.args.split == "True":
-            weight = nn.Parameter(torch.zeros(self.num_classes, device=self.device))
-            optimizer = torch.optim.Adam([weight], lr=1e-2)
-            i = 0
-            prev_loss = -1
-            while True:
-                g_x = self.cal_prob @ weight
-                loss = self.pinball_loss(g_x, self.cal_score)
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+            trainfeatureMap = torch.cat((trainfeatureMap, self.featurizer(data)), dim=0)
+            y_train = torch.cat((y_train, target), dim=0)
 
-                diff = abs(loss - prev_loss)
-                prev_loss = loss
-                i += 1
-                if diff < 1e-5 and i > 100:
-                    break
 
-            self.weight = weight
+        self.y_train = y_train.detach().cpu().numpy()
+        self.train_featureMap = trainfeatureMap.detach().cpu().numpy()
+
+    def computeFeatures(self, XTrain, XCal, XTest, yTrain, Cvalues, losses):
+        model = LogisticRegression(C=Cvalues[np.argmin(losses)], max_iter=5000)
+        reg = model.fit(XTrain, yTrain)
+
+        featuresCal = reg.predict_proba(XCal)
+        featuresTest = reg.predict_proba(XTest)
+
+        return featuresCal, featuresTest
+
+    def computeCoverages(self, XCal, scoresCal, XTest, scoresTest, y_test, alpha):
+        coveragesCond = np.zeros(len(XTest))
+        set_size = np.zeros(len(XTest))
+
+        scoresCal_numpy = scoresCal[np.arange(self.y_cal.shape[0]), self.y_cal]
+
+        for i in tqdm(range(len(XTest))):
+            prob = setup_cvx_problem_calib(1 - alpha, None,
+                                           np.concatenate((scoresCal_numpy, np.array([scoresTest[i, y_test[i]]]))),
+                                           np.vstack((XCal, XTest[i, :])), {})
+            if "MOSEK" in cp.installed_solvers():
+                prob.solve(solver="MOSEK")
+            else:
+                prob.solve()
+            threshold = XTest[i, :] @ prob.constraints[2].dual_value
+            set_size[i] = np.sum(scoresTest[i] <= threshold)
+            coveragesCond[i] = (scoresTest[i, y_test[i]] <= threshold)
+        return set_size, coveragesCond
+
+
+    def calibrate(self, cal_loader, alpha=None):
+        self.model.eval()
+        calfeatureMap = torch.tensor([], device=self.device)
+        y_cal = torch.tensor([], device=self.device, dtype=torch.int)
+        scoresCal = torch.tensor([], device=self.device)
+
+        for data, target in cal_loader:
+            data = data.to(self.device)
+            target = target.to(self.device)
+            logits = self.model(data)
+            prob = torch.softmax(logits, dim=-1)
+            batch_score = self.score_function(prob)
+
+            calfeatureMap = torch.cat((calfeatureMap, self.featurizer(data)), dim=0)
+            y_cal = torch.cat((y_cal, target), dim=0)
+            scoresCal = torch.cat((scoresCal, batch_score), 0)
+
+        self.scoresCal = scoresCal.detach().cpu().numpy()
+        self.y_cal = y_cal.detach().cpu().numpy()
+        self.cal_featureMap = calfeatureMap.detach().cpu().numpy()
 
     def calibrate_batch_logit(self, logits, target, alpha):
         """Design for conformal training, which needs to compute threshold in every batch"""
@@ -64,107 +120,45 @@ class CondConfPredictor:
         N = target.shape[0]
         return torch.quantile(batch_score, math.ceil((1 - alpha) * (N + 1)) / N, dim=0)
 
-    def get_prediction_set(self, test_data_prob):
-        if self.args.split == "False":
-            test_data_prob = test_data_prob.detach()
-            target_score = self.score_function(test_data_prob)
-            data_prob = torch.cat((self.cal_prob, test_data_prob.view(1, -1)), dim=0)
-            pred_set = torch.zeros(self.num_classes, device=self.device)
-            for y in range(self.num_classes):
-                weight = nn.Parameter(torch.zeros(self.num_classes, device=self.device))
-                optimizer = torch.optim.Adam([weight], lr=1e-2)
-                score = torch.cat((self.cal_score, target_score[y].view(1)), dim=0)
-
-                prev_loss = 0
-                diff = 10
-                i = 0
-                while True:
-                    g_x = data_prob @ weight
-                    loss = self.pinball_loss(g_x, score)
-                    diff = abs(loss.item() - prev_loss)
-                    prev_loss = loss.item()
-
-                    optimizer.zero_grad()
-                    loss.backward()
-                    optimizer.step()
-
-                    i += 1
-                    if diff < 1e-5 and i > 100:
-                        break
-
-                if target_score[y] <= test_data_prob @ weight:
-                    pred_set[y] = 1
-            return torch.tensor(pred_set, device=self.device, dtype=torch.int)
-        else:
-            threshold = test_data_prob * self.weight
-            target_score = self.score_function(test_data_prob)
-            return (target_score <= threshold).to(torch.int)
-
 
     def evaluate(self, test_loader):
         """Must be called after calibration.
         Output a dictionary containing Top1 Accuracy, Coverage and Average Prediction Set Size."""
         self.model.eval()
-        total_accuracy = 0
-        total_coverage = 0
-        total_prediction_set_size = 0
-        total_samples = 0
-        cond_covgap = 0
 
-        featureMat = torch.tensor([], device=self.device)
+        testfeatureMap = torch.tensor([], device=self.device)
+        test_target = torch.tensor([], device=self.device, dtype=torch.int)
 
+        scoresTest = torch.tensor([], device=self.device)
         for data, target in test_loader:
             data = data.to(self.device)
             target = target.to(self.device)
-            featureMat = torch.cat((featureMat, self.featurizer(data)), dim=0)
+            logits = self.model(data)
+            prob = torch.softmax(logits, dim=-1)
+            batch_score = self.score_function(prob)
 
-        ### reshape meta data
-        metaDataFinal = torch.tensor([], device=self.device)
+            testfeatureMap = torch.cat((testfeatureMap, self.featurizer(data)), dim=0)
+            test_target = torch.cat((test_target, target), dim=0)
+            scoresTest = torch.cat((scoresTest, batch_score), 0)
 
-        ### extract y values
-        y = np.zeros(n)
-        for i in range(n):
-            metaDataFinal[i, :] = rx1TestImages[i][2].numpy()
-            y[i] = rx1TestImages[i][1].numpy()
+        testfeatureMap = testfeatureMap.detach().cpu().numpy()
+        test_target = test_target.detach().cpu().numpy()
+        scoresTest = scoresTest.detach().cpu().numpy()
 
-        ### get probabilities output by pretrained neural network
-        rawProbMat = np.zeros((n, 1139))
-        for i in range(n):
-            rawProbMat[i, :] = classifier(torch.from_numpy(featureMat[i, :].reshape(1, 2048)).to(torch.float32).to(
-                device)).cpu().detach().numpy()[0, :]
+        Cvalues, losses = self.cvForFeatures(self.train_featureMap, self.y_train,
+                                             numCs=20, minC=0.001, maxC=0.1)
 
-        for data, target in test_loader:
-            data, target = data.to(self.device), target.to(self.device)
-            batch_size = target.shape[0]
-            total_samples += batch_size
+        finalFeaturesCal, finalFeaturesTest = self.computeFeatures(self.train_featureMap,
+                                                                   self.cal_featureMap,
+                                                                   testfeatureMap,
+                                                                   self.y_train, Cvalues, losses)
 
-            logit = self.model(data)
-            prob = torch.softmax(logit, dim=-1)
-            prediction = torch.argmax(prob, dim=-1)
-            total_accuracy += (prediction == target).sum().item()
+        set_size, coveragesCond = self.computeCoverages(finalFeaturesCal, self.scoresCal,
+                                                         finalFeaturesTest, scoresTest, test_target, alpha=0.1)
 
-            for i in range(batch_size):
-                pred_set = self.get_prediction_set(prob[i])
-
-                total_prediction_set_size += torch.sum(pred_set)
-                if pred_set[target[i]].item() == 1:
-                    total_coverage += 1
-                weight = torch.rand(self.num_classes, device=self.device)
-                f_x = prob[i] @ weight
-                sub_covgap = self.alpha if target in pred_set else self.alpha - 1
-                cond_covgap += f_x * sub_covgap
-
-        accuracy = total_accuracy / total_samples
-        coverage = total_coverage / total_samples
-        avg_set_size = total_prediction_set_size / total_samples
-        E_cond_covgap = cond_covgap / total_samples
-
-        result_dict = {
-            f"Top1Accuracy": accuracy,
-            f"AverageSetSize": avg_set_size,
-            f"Coverage": coverage,
-            f"ConditionalCoverageGap": E_cond_covgap
-        }
+        result_dict = {"Coverage":np.mean(coveragesCond),
+                       "AverageSetSize":np.mean(set_size),
+                       }
 
         return result_dict
 

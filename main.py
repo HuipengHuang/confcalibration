@@ -4,9 +4,9 @@ from common import algorithm
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--num_runs", type=int, default=1, help="Number of runs")
+parser.add_argument("--num_runs", type=int, default=10, help="Number of runs")
 parser.add_argument("--model", type=str, default="resnet18", help='Choose neural network architecture.')
-parser.add_argument("--dataset", type=str, default="rxrx1", choices=["cifar10", "cifar100", "imagenet", "rxrx1"],
+parser.add_argument("--dataset", type=str, default="cifar10", choices=["cifar10", "cifar100", "imagenet", "rxrx1"],
                     help="Choose dataset for training.")
 parser.add_argument('--seed', type=int, default=None)
 parser.add_argument("--pretrained", default="True", type=str, choices=["True", "False"])
@@ -14,7 +14,7 @@ parser.add_argument("--save", default="False", choices=["True", "False"], type=s
 parser.add_argument("--algorithm",'-alg', default="cp", choices=["standard", "cp", "tune"],
                     help="Uncertainty aware training use uatr. Otherwise use standard")
 parser.add_argument("--load", default="False", type=str, choices=["True", "False"])
-parser.add_argument("--predictor", default=None, type=str, choices=["local", "cluster", "cond"])
+parser.add_argument("--predictor", default="condconf", type=str, choices=["local", "cluster", "cond", "condconf"])
 parser.add_argument("--save_model", default=None, type=str, choices=["True", "False"])
 parser.add_argument("--train_one_model_first", default="False", type=str, choices=["True", "False"])
 parser.add_argument("--split", default="True", type=str, choices=["True", "False"])
