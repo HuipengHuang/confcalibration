@@ -90,7 +90,7 @@ def build_cal_test_loader(args):
         test_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
     elif args.algorithm == "tune":
         cal_size = args.cal_num
-        tune_size = args.tune_size if args.tune_size else cal_size
+        tune_size = args.tune_size if args.tune_num else cal_size
         test_size = len(val_dataset) - cal_size
         cal_dataset, test_dataset = random_split(val_dataset, [cal_size, test_size])
         tune_dataset, test_dataset = random_split(test_dataset, [tune_size, test_size - tune_size])
