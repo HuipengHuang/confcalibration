@@ -1,7 +1,13 @@
 import os
 import torch
 import torchvision.models as models
-from .model import TemperatureScaling, VectorScaling, PlattScaling, ConfTr, BaseModel
+from .naive_model import NaiveModel
+from .ts import TemperatureScaling
+from .vs import VectorScaling
+from .ps import PlattScaling
+from .conftr import ConfTr
+
+
 def build_net(device, args):
     model_type = args.model
     pretrained = (args.pretrained == "True")
@@ -40,7 +46,7 @@ def build_model(device, args):
     net = build_net(device, args)
     method = args.method
     if method is None:
-        model = BaseModel(net, device, args)
+        model = NaiveModel(net, device, args)
     elif method == "ts":
         model = TemperatureScaling(net, device, args)
     elif method == "vs":

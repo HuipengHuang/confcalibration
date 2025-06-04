@@ -2,9 +2,9 @@ import torchvision
 from torchvision.transforms import transforms
 from torch.utils.data import DataLoader, Subset, random_split
 import torch
-from torchvision.datasets import CIFAR100, cifar
+from torchvision.datasets import CIFAR100
 from torchvision.datasets import CIFAR10
-
+from .rxrx1 import rxrx1_dataset
 
 def build_train_dataloader(args):
     dataset_name = args.dataset
@@ -37,6 +37,9 @@ def build_train_dataloader(args):
             transform=train_transform
         )
         num_classes = 1000
+    elif dataset_name == "rxrx1":
+        train_dataset = rxrx1_dataset(train=True)
+        num_classes = 1039
     else:
         raise NotImplementedError
     args.num_classes = num_classes
@@ -48,11 +51,11 @@ def build_cal_test_loader(args):
     dataset_name = args.dataset
 
     if dataset_name == "cifar10":
-        num_class = 10
+        num_classes = 10
         val_dataset = CIFAR10(root='./data/dataset', train=False, download=True,
                                  transform=transforms.Compose([transforms.ToTensor()]))
     elif dataset_name == "cifar100":
-        num_class = 100
+        num_classes = 100
 
         val_transform = transforms.Compose([
             transforms.ToTensor(),
@@ -63,7 +66,7 @@ def build_cal_test_loader(args):
                                  transform=val_transform)
 
     elif dataset_name == "imagenet":
-        num_class = 1000
+        num_classes = 1000
 
         val_transform = transforms.Compose([
             transforms.Resize(256),
@@ -76,20 +79,24 @@ def build_cal_test_loader(args):
             root="/mnt/sharedata/ssd3/common/datasets/imagenet/images/val",
             transform=val_transform
         )
+    elif args.dataset == "rxrx1":
+        val_dataset = rxrx1_dataset(train=False)
+        num_classes = 1039
     else:
         raise NotImplementedError
 
     if args.algorithm == "standard":
-        cal_loader, cal_tune_loader= None, None
+        cal_loader, tune_loader= None, None
         test_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
-    elif args.tune_num:
+    elif args.algorithm == "tune":
         cal_size = args.cal_num
+        tune_size = args.tune_size if args.tune_size else cal_size
         test_size = len(val_dataset) - cal_size
         cal_dataset, test_dataset = random_split(val_dataset, [cal_size, test_size])
-        tune_dataset, test_dataset = random_split(test_dataset, [cal_size, test_size - cal_size])
+        tune_dataset, test_dataset = random_split(test_dataset, [tune_size, test_size - tune_size])
 
         cal_loader = DataLoader(cal_dataset, batch_size=args.batch_size, shuffle=False)
-        cal_tune_loader = DataLoader(tune_dataset, batch_size=args.batch_size, shuffle=False)
+        tune_loader = DataLoader(tune_dataset, batch_size=args.batch_size, shuffle=False)
         test_loader = DataLoader(test_dataset, batch_size=max(args.batch_size, 100), shuffle=False)
     else:
         cal_size = args.cal_num
@@ -97,11 +104,11 @@ def build_cal_test_loader(args):
         cal_dataset, test_dataset = random_split(val_dataset, [cal_size, test_size])
 
         cal_loader = DataLoader(cal_dataset, batch_size=args.batch_size, shuffle=False)
-        cal_tune_loader = None
+        tune_loader = None
         test_loader = DataLoader(test_dataset, batch_size=max(args.batch_size, 100), shuffle=False)
 
-    args.num_classes = num_class
-    return cal_loader, cal_tune_loader, test_loader
+    args.num_classes = num_classes
+    return cal_loader, tune_loader, test_loader
 
 
 def split_dataloader(original_dataloader, split_ratio=0.5):
