@@ -32,7 +32,7 @@ class CondConfPredictor:
         self.train_featureMap = None
 
     def cvForFeatures(self, X, y, numCs=20, minC=0.001, maxC=0.1):
-        folds = KFold(n_splits=3, shuffle=True)
+        folds = KFold(n_splits=5, shuffle=True)
         #folds = StratifiedKFold(n_splits=3, shuffle=True)
         Cvalues = np.linspace(minC, maxC, numCs)
         losses = np.zeros(numCs)
