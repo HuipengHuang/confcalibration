@@ -6,7 +6,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("--num_runs", type=int, default=1, help="Number of runs")
 parser.add_argument("--model", type=str, default="resnet18", help='Choose neural network architecture.')
-parser.add_argument("--dataset", type=str, default="cifar10", choices=["cifar10", "cifar100", "imagenet", "rxrx1"],
+parser.add_argument("--dataset", type=str, default="cifar100", choices=["cifar10", "cifar100", "imagenet", "rxrx1"],
                     help="Choose dataset for training.")
 parser.add_argument('--seed', type=int, default=None)
 parser.add_argument("--pretrained", default="True", type=str, choices=["True", "False"])
