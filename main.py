@@ -4,14 +4,14 @@ from common import algorithm
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--num_runs", type=int, default=10, help="Number of runs")
+parser.add_argument("--num_runs", type=int, default=1, help="Number of runs")
 parser.add_argument("--model", type=str, default="resnet18", help='Choose neural network architecture.')
 parser.add_argument("--dataset", type=str, default="cifar10", choices=["cifar10", "cifar100", "imagenet", "rxrx1"],
                     help="Choose dataset for training.")
 parser.add_argument('--seed', type=int, default=None)
 parser.add_argument("--pretrained", default="True", type=str, choices=["True", "False"])
 parser.add_argument("--save", default="False", choices=["True", "False"], type=str)
-parser.add_argument("--algorithm",'-alg', default="cp", choices=["standard", "cp", "tune"],
+parser.add_argument("--algorithm",'-alg', default="tune", choices=["standard", "cp", "tune"],
                     help="Uncertainty aware training use uatr. Otherwise use standard")
 parser.add_argument("--load", default="False", type=str, choices=["True", "False"])
 parser.add_argument("--predictor", default="condconf", type=str, choices=["local", "cluster", "cond", "condconf"])
@@ -20,7 +20,7 @@ parser.add_argument("--train_one_model_first", default="False", type=str, choice
 parser.add_argument("--split", default="True", type=str, choices=["True", "False"])
 
 #Tuning bias hyperparameter
-parser.add_argument("--method", default=None, type=str, choices=["ts", "vs", "ps","conftr"])
+parser.add_argument("--method", default="ts", type=str, choices=["ts", "vs", "ps","conftr"])
 parser.add_argument("--cal_num", type=int, default=1000, help="6k, 7k, 8k, 9k, 10k are used in the tuning bias paper")
 parser.add_argument("--tune_num", type=int, default=None)
 parser.add_argument("--freeze_num", type=int, default=None)
