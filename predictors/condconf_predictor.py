@@ -3,7 +3,7 @@ import torch
 import math
 import torch.nn as nn
 from loss.pinball_loss import PinballLoss
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, StratifiedKFold
 import numpy as np
 from tqdm import tqdm
 from sklearn.linear_model import LogisticRegression
@@ -31,8 +31,9 @@ class CondConfPredictor:
         self.y_train = None
         self.train_featureMap = None
 
-    def cvForFeatures(self, X, y, numCs=5, minC=0.001, maxC=0.1):
-        folds = KFold(n_splits=5, shuffle=True)
+    def cvForFeatures(self, X, y, numCs=20, minC=0.001, maxC=0.1):
+        #folds = KFold(n_splits=5, shuffle=True)
+        folds = StratifiedKFold(n_splits=3, shuffle=True)
         Cvalues = np.linspace(minC, maxC, numCs)
         losses = np.zeros(numCs)
         count = 0
