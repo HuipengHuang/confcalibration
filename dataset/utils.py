@@ -24,7 +24,7 @@ def build_train_dataloader(args):
 
         train_dataset = CIFAR100(root="/mnt/sharedata/ssd3/common/datasets/cifar-100-python", download=False, train=True, transform=train_transform)
         num_classes = 100
-        train_dataset = Subset(train_dataset, range(0, 500))
+        train_dataset = Subset(train_dataset, range(0, 1000))
     elif dataset_name == "imagenet":
         train_transform = transforms.Compose([
             transforms.RandomResizedCrop(224),
