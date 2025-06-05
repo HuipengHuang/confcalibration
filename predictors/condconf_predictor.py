@@ -147,7 +147,7 @@ class CondConfPredictor:
         scoresTest = scoresTest.detach().cpu().numpy()
 
         Cvalues, losses = self.cvForFeatures(self.train_featureMap, self.y_train,
-                                             numCs=1, minC=0.001, maxC=0.1)
+                                             numCs=20, minC=0.001, maxC=0.1)
 
         finalFeaturesCal, finalFeaturesTest = self.computeFeatures(self.train_featureMap,
                                                                    self.cal_featureMap,
