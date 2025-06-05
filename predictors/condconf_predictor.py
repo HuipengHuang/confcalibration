@@ -31,7 +31,7 @@ class CondConfPredictor:
         self.y_train = None
         self.train_featureMap = None
 
-    def cvForFeatures(self, X, y, numCs=20, minC=0.001, maxC=0.1):
+    def cvForFeatures(self, X, y, numCs=5, minC=0.001, maxC=0.1):
         folds = KFold(n_splits=5, shuffle=True)
         Cvalues = np.linspace(minC, maxC, numCs)
         losses = np.zeros(numCs)
@@ -146,7 +146,7 @@ class CondConfPredictor:
         scoresTest = scoresTest.detach().cpu().numpy()
 
         Cvalues, losses = self.cvForFeatures(self.train_featureMap, self.y_train,
-                                             numCs=20, minC=0.001, maxC=0.1)
+                                             numCs=1, minC=0.001, maxC=0.1)
 
         finalFeaturesCal, finalFeaturesTest = self.computeFeatures(self.train_featureMap,
                                                                    self.cal_featureMap,
