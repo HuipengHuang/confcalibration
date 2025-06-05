@@ -32,8 +32,8 @@ class CondConfPredictor:
         self.train_featureMap = None
 
     def cvForFeatures(self, X, y, numCs=20, minC=0.001, maxC=0.1):
-        #folds = KFold(n_splits=5, shuffle=True)
-        folds = StratifiedKFold(n_splits=3, shuffle=True)
+        folds = KFold(n_splits=3, shuffle=True)
+        #folds = StratifiedKFold(n_splits=3, shuffle=True)
         Cvalues = np.linspace(minC, maxC, numCs)
         losses = np.zeros(numCs)
         count = 0
@@ -53,7 +53,7 @@ class CondConfPredictor:
         trainfeatureMap = torch.tensor([], device=self.device)
         y_train = torch.tensor([], device=self.device, dtype=torch.int)
 
-        for data, target in train_loader:
+        for data, target in tqdm(train_loader, desc="Processing Train Feature"):
             data = data.to(self.device)
             target = target.to(self.device)
 

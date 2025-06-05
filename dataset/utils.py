@@ -96,6 +96,9 @@ def build_cal_test_loader(args):
         cal_dataset, test_dataset = random_split(val_dataset, [cal_size, test_size])
         tune_dataset, test_dataset = random_split(test_dataset, [tune_size, test_size - tune_size])
 
+        cal_dataset = Subset(val_dataset, range(0, 100))
+        tune_dataset = Subset(val_dataset, range(100, 200))
+        test_dataset = Subset(val_dataset, range(200, 300))
 
         cal_loader = DataLoader(cal_dataset, batch_size=args.batch_size, shuffle=False)
         tune_loader = DataLoader(tune_dataset, batch_size=args.batch_size, shuffle=False)

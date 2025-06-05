@@ -60,8 +60,8 @@ def tune(args):
             trainer.train(train_loader, args.epochs)
 
         if args.predictor == "condconf":
+            print("Processing train features")
             trainer.predictor.get_train_features(train_loader)
-            print("Train_features are processed")
 
         trainer.model.tune(cal_tune_loader)
 
