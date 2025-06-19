@@ -6,7 +6,7 @@ from .ts import TemperatureScaling
 from .vs import VectorScaling
 from .ps import PlattScaling
 from .conftr import ConfTr
-
+from .linear_probing import LinearProbing
 
 def build_net(device, args):
     model_type = args.model
@@ -55,6 +55,8 @@ def build_model(device, args):
         model = PlattScaling(net, device, args)
     elif method == "conftr":
         model = ConfTr(net, device, args)
+    elif method == "linear_probing":
+        model = LinearProbing(net, device, args)
     else:
         raise NotImplementedError
     return model
