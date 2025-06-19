@@ -20,7 +20,7 @@ parser.add_argument("--train_one_model_first", default="False", type=str, choice
 parser.add_argument("--split", default="True", type=str, choices=["True", "False"])
 
 #Tuning bias hyperparameter
-parser.add_argument("--method", default="ts", type=str, choices=["ts", "vs", "ps","conftr"])
+parser.add_argument("--method", default="ts", type=str, choices=["ts", "vs", "ps","conftr", "linear_probing"])
 parser.add_argument("--cal_num", type=int, default=1000, help="6k, 7k, 8k, 9k, 10k are used in the tuning bias paper")
 parser.add_argument("--tune_num", type=int, default=None)
 parser.add_argument("--freeze_num", type=int, default=None)
