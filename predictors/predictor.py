@@ -1,6 +1,9 @@
 from scores.utils import get_score
 import torch
 import math
+from predictors.utils import compute_calibration_metrics
+import torch.nn as nn
+from dataset.utils import merge_dataloader
 
 
 class Predictor:
@@ -12,7 +15,7 @@ class Predictor:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.args = args
 
-    def calibrate(self, cal_loader, alpha=None):
+    def calibrate(self, cal_loader, test_loader, alpha=None):
         """ Input calibration dataloader.
             Compute scores for all the calibration data and take the (1 - alpha) quantile."""
         self.model.eval()
@@ -33,7 +36,7 @@ class Predictor:
             N = cal_score.shape[0]
             threshold = torch.quantile(cal_score, math.ceil((1 - alpha) * (N + 1)) / N, dim=0)
             self.threshold = threshold
-            return threshold
+
 
     def calibrate_batch_logit(self, logits, target, alpha):
         """Design for conformal training, which needs to compute threshold in every batch"""
@@ -46,8 +49,26 @@ class Predictor:
         """Must be called after calibration.
         Output a dictionary containing Top1 Accuracy, Coverage and Average Prediction Set Size."""
         self.model.eval()
-        if self.threshold is not None:
-            with torch.no_grad():
+        with torch.no_grad():
+            prob_tensor, label_tensor = torch.tensor([], device=self.device), torch.tensor([], device=self.device)
+            for data, target in test_loader:
+                data, target = data.to(self.device), target.to(self.device)
+
+                logit = self.model(data)
+                prob = torch.softmax(logit, dim=-1)
+                prob_tensor = torch.cat((prob_tensor, prob), 0)
+                label_tensor = torch.cat((label_tensor, target), 0)
+            accuracy, ece, ace, mce, piece = compute_calibration_metrics(prob_tensor, label_tensor)
+            result_dict = {
+                f"Top1Accuracy": accuracy,
+                f"ECE": ece,
+                f"ACE": ace,
+                f"MCE": mce,
+                f"Piece": piece
+            }
+        return result_dict
+
+"""            with torch.no_grad():
                 total_accuracy = 0
                 total_coverage = 0
                 total_prediction_set_size = 0
@@ -79,24 +100,4 @@ class Predictor:
                     f"Top1Accuracy": accuracy,
                     f"AverageSetSize": avg_set_size,
                     f"Coverage": coverage,
-                }
-        else:
-            total_samples = 0
-            total_accuracy = 0
-            with torch.no_grad():
-                for data, target in test_loader:
-                    data, target = data.to(self.device), target.to(self.device)
-                    total_samples += target.shape[0]
-
-                    logit = self.model(data)
-                    prob = torch.softmax(logit, dim=-1)
-                    prediction = torch.argmax(prob, dim=-1)
-                    total_accuracy += (prediction == target).sum().item()
-
-                accuracy = total_accuracy / total_samples
-                result_dict = {
-                    f"{self.args.score}_Top1Accuracy": accuracy,
-                }
-
-        return result_dict
-
+                }"""

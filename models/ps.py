@@ -14,7 +14,7 @@ class PlattScaling(NaiveModel):
         return self.net(x) * self.a + self.b
 
 
-    def tune(self, tune_loader):
+    def calibrate(self, tune_loader):
         self.net.eval()
         self.a = nn.Parameter(torch.tensor([1.5]).to(self.device), requires_grad=True)
         self.b = nn.Parameter(torch.tensor([1.5]).to(self.device), requires_grad=True)

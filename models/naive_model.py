@@ -1,5 +1,5 @@
 import torch.nn as nn
-
+from scores.utils import get_score
 
 class NaiveModel(nn.Module):
     def __init__(self, net, device, args):
@@ -7,6 +7,8 @@ class NaiveModel(nn.Module):
         self.net = net
         self.device = device
         self.args = args
+        self.score_function = get_score(self.args)
+        self.alpha = args.alpha
     def eval(self):
         self.net.eval()
 
@@ -16,7 +18,7 @@ class NaiveModel(nn.Module):
     def forward(self, x):
         return self.net(x)
 
-    def tune(self, tune_loader):
+    def calibrate(self, cal_loader, test_loader, threshold):
         raise NotImplementedError
 
     def get_featurizer(self):

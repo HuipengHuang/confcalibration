@@ -17,7 +17,7 @@ class VectorScaling(NaiveModel):
         return self.net(x) * self.w + self.b
 
 
-    def tune(self, tune_loader):
+    def calibrate(self, tune_loader):
         self.net.eval()
         self.w = nn.Parameter((torch.ones(self.args.num_classes) * 1.5).to(self.device), requires_grad=True)
 

@@ -5,6 +5,8 @@ import torch
 from torchvision.datasets import CIFAR100
 from torchvision.datasets import CIFAR10
 from .rxrx1 import rxrx1_dataset
+from torch.utils.data import ConcatDataset
+
 
 def build_train_dataloader(args):
     dataset_name = args.dataset
@@ -89,20 +91,6 @@ def build_cal_test_loader(args):
     if args.algorithm == "standard":
         cal_loader, tune_loader= None, None
         test_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
-    elif args.algorithm == "tune":
-        cal_size = args.cal_num
-        tune_size = args.tune_size if args.tune_num else cal_size
-        test_size = len(val_dataset) - cal_size
-        cal_dataset, test_dataset = random_split(val_dataset, [cal_size, test_size])
-        tune_dataset, test_dataset = random_split(test_dataset, [tune_size, test_size - tune_size])
-
-        cal_dataset = Subset(val_dataset, range(0, 100))
-        tune_dataset = Subset(val_dataset, range(100, 200))
-        test_dataset = Subset(val_dataset, range(200, 300))
-
-        cal_loader = DataLoader(cal_dataset, batch_size=args.batch_size, shuffle=False)
-        tune_loader = DataLoader(tune_dataset, batch_size=args.batch_size, shuffle=False)
-        test_loader = DataLoader(test_dataset, batch_size=max(args.batch_size, 100), shuffle=False)
     else:
         cal_size = args.cal_num
         test_size = len(val_dataset) - cal_size
@@ -142,3 +130,9 @@ def split_dataloader(original_dataloader, split_ratio=0.5):
         subset2 = Subset(dataset, indices_subset2)
 
         return subset1, subset2
+
+def merge_dataloader(args, cal_loader, test_loader):
+    cal_ds = cal_loader.dataset
+    test_ds = test_loader.dataset
+    ds = ConcatDataset([cal_ds, test_ds])
+    return DataLoader(ds, batch_size=args.batch_size, shuffle=True)
