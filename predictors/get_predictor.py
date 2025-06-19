@@ -13,6 +13,6 @@ def get_predictor(args, net):
         predictor = CondConfPredictor(args, net)
     elif args.predictor == "cond":
         predictor = ConditionalPredictor(args, net)
-    else:
+    elif args.predictor == "naive":
         predictor = Predictor(args, net)
     return predictor

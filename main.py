@@ -14,7 +14,7 @@ parser.add_argument("--save", default="False", choices=["True", "False"], type=s
 parser.add_argument("--algorithm",'-alg', default="tune", choices=["standard", "cp", "tune"],
                     help="Uncertainty aware training use uatr. Otherwise use standard")
 parser.add_argument("--load", default="False", type=str, choices=["True", "False"])
-parser.add_argument("--predictor", default="condconf", type=str, choices=["local", "cluster", "cond", "condconf"])
+parser.add_argument("--predictor", default="condconf", type=str, choices=["naive", "local", "cluster", "cond", "condconf"])
 parser.add_argument("--save_model", default=None, type=str, choices=["True", "False"])
 parser.add_argument("--train_one_model_first", default="False", type=str, choices=["True", "False"])
 parser.add_argument("--split", default="True", type=str, choices=["True", "False"])
