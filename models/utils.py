@@ -36,7 +36,7 @@ def build_net(device, args):
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
 
-    if args.dataset != "imagenet":
+    if args.dataset != "imagenet" and model_type != "resnet50":
         if hasattr(net, "fc"):
             net.fc = torch.nn.Linear(net.fc.in_features, num_classes)
         else:
