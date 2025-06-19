@@ -11,7 +11,7 @@ from dataset.utils import merge_dataloader
 class LinearProbing(NaiveModel):
     def __init__(self, net, device, args):
         super().__init__(net, device, args)
-        out_feature = self.net.out_feature
+        out_feature = args.num_classes
         self.T = nn.Parameter(torch.ones(size=(out_feature, out_feature)), requires_grad=False)
 
     def forward(self, x):
