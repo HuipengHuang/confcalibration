@@ -15,7 +15,7 @@ class Predictor:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.args = args
 
-    def calibrate(self, cal_loader, test_loader, alpha=None):
+    def calibrate(self, cal_loader, alpha=None):
         """ Input calibration dataloader.
             Compute scores for all the calibration data and take the (1 - alpha) quantile."""
         self.model.eval()
