@@ -7,6 +7,7 @@ from .vs import VectorScaling
 from .ps import PlattScaling
 from .conftr import ConfTr
 from .linear_probing import LinearProbing
+from .net.resnet50 import ResNet50
 
 def build_net(device, args):
     model_type = args.model
@@ -18,7 +19,10 @@ def build_net(device, args):
     elif model_type == "resnet34":
         net = models.resnet34(weights=models.ResNet34_Weights.IMAGENET1K_V1 if pretrained else None)
     elif model_type == "resnet50":
-        net = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V1 if pretrained else None)
+        if args.dataset == "imagenet":
+            net = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V1 if pretrained else None)
+        else:
+            net = ResNet50(num_classes=num_classes)
     elif model_type == "resnet101":
         net = models.resnet101(weights=models.ResNet101_Weights.IMAGENET1K_V1 if pretrained else None)
     elif model_type == "resnet152":
@@ -64,8 +68,10 @@ def build_model(device, args):
 def load_model(args, net):
         p = f"./data/{args.dataset}_{args.model}{0}net.pth"
 
-
-        net.load_state_dict(torch.load(p))
+        if args.model == "resnet50":
+            net.resnet.load_state_dict(torch.load(p))
+        else:
+            net.load_state_dict(torch.load(p))
 
 def save_model(args, model):
     i = 0
