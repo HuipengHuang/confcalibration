@@ -19,7 +19,7 @@ class LinearProbing(NaiveModel):
 
     def calibrate(self, cal_loader, test_loader, threshold=None):
         self.net.eval()
-        self.T = nn.Parameter(torch.ones(size=(self.net.out_feature, self.net.out_feature), device=self.device), requires_grad=True)
+        self.T = nn.Parameter(torch.ones(size=(self.args.num_classes, self.args.num_classes), device=self.device), requires_grad=True)
         optimizer = optim.Adam(self.T, self.args.learning_rate)
 
         if threshold:
