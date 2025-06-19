@@ -64,10 +64,8 @@ def build_model(device, args):
 def load_model(args, net):
         p = f"./data/{args.dataset}_{args.model}{0}net.pth"
 
-        if args.model == "resnet50":
-            net.resnet.load_state_dict(torch.load(p))
-        else:
-            net.load_state_dict(torch.load(p))
+
+        net.load_state_dict(torch.load(p))
 
 def save_model(args, model):
     i = 0
