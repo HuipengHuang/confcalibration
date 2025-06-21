@@ -37,14 +37,15 @@ def build_net(device, args):
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
 
-    if hasattr(net, "fc"):
-        net.fc = torch.nn.Linear(net.fc.in_features, num_classes)
-    else:
-        if model_type != "resnet50":
-            net.classifier = torch.nn.Linear(net.classifier.in_features, num_classes)
-    if args.dataset == "cifar100":
-        net.resnet.conv1 = torch.nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
-        net.resnet.maxpool = torch.nn.Identity()
+    if args.dataset != "imagenet":
+        if hasattr(net, "fc"):
+            net.fc = torch.nn.Linear(net.fc.in_features, num_classes)
+        else:
+            if model_type != "resnet50":
+                net.classifier = torch.nn.Linear(net.classifier.in_features, num_classes)
+        if args.dataset == "cifar100":
+            net.resnet.conv1 = torch.nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+            net.resnet.maxpool = torch.nn.Identity()
     if args.load == "True":
         load_model(args, net)
     return net.to(device)
