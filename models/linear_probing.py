@@ -22,7 +22,7 @@ class LinearProbing(NaiveModel):
         self.T = nn.Parameter(torch.ones(size=(self.args.num_classes, self.args.num_classes), device=self.device), requires_grad=True)
         optimizer = optim.Adam([self.T], self.args.learning_rate)
 
-        if threshold:
+        if self.args.algorithm == "cp":
             dataloader = merge_dataloader(self.args, cal_loader, test_loader)
             for epoch in range(10):
                 for data, target in tqdm(dataloader, desc=f"{epoch} / 100"):
