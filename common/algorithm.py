@@ -51,8 +51,6 @@ def standard(args):
         if args.epochs:
             trainer.train(train_loader, args.epochs)
 
-        trainer.model.calibrate(cal_loader, test_loader, None)
-
         result_dict = trainer.predictor.evaluate(test_loader)
 
         for key, value in result_dict.items():

@@ -5,13 +5,15 @@ import torch.optim as optim
 class TemperatureScaling(NaiveModel):
     def __init__(self, net, device, args):
         super().__init__(net, device, args)
-        self.T = nn.Parameter(torch.tensor([1]).to(self.device), requires_grad=False)
+        self.T = nn.Parameter(torch.tensor([1.0]).to(self.device), requires_grad=False)
 
     def forward(self, x):
         return self.net(x) / self.T
 
-    def calibrate(self, tune_loader):
+    def calibrate(self, cal_loader, test_loader, threshold=None):
         self.net.eval()
+
+        if self.args
         self.T = nn.Parameter(torch.tensor([1.5]).to(self.device), requires_grad=True)
         optimizer = optim.LBFGS([self.T], lr=0.1, max_iter=200)
 
