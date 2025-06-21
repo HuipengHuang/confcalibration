@@ -12,17 +12,17 @@ class LinearProbing(NaiveModel):
     def __init__(self, net, device, args):
         super().__init__(net, device, args)
         out_feature = args.num_classes
-        self.T = nn.Parameter(torch.ones(size=(out_feature, out_feature), device=device), requires_grad=False)
+        self.T = nn.Parameter(torch.eye(out_feature, device=device), requires_grad=False)
 
     def forward(self, x):
         return self.net(x) @ self.T
 
     def calibrate(self, cal_loader, test_loader, threshold=None):
         self.net.eval()
-        self.T = nn.Parameter(torch.ones(size=(self.args.num_classes, self.args.num_classes), device=self.device), requires_grad=True)
+        self.T = nn.Parameter(torch.eye(self.args.num_classes, device=self.device), requires_grad=True)
         optimizer = optim.Adam([self.T], self.args.learning_rate)
 
-        if self.args.algorithm == "cp":
+        if self.args.cc == "True":
             dataloader = merge_dataloader(self.args, cal_loader, test_loader)
             for epoch in range(10):
                 for data, target in tqdm(dataloader, desc=f"{epoch} / 100"):
@@ -40,8 +40,8 @@ class LinearProbing(NaiveModel):
                     loss.backward()
                     optimizer.step()
         else:
-            self.T = nn.Parameter(torch.ones(size=(self.net.out_feature, self.net.out_feature)), requires_grad=True)
-            optimizer = optim.Adam(self.T, self.args.learning_rate)
+            self.T = nn.Parameter(torch.eye(self.args.num_classes, device=self.device), requires_grad=True)
+            optimizer = optim.Adam([self.T], self.args.learning_rate)
             dataloader = cal_loader
             loss_function = nn.CrossEntropyLoss()
             for epoch in range(10):

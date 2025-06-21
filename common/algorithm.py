@@ -20,8 +20,11 @@ def cp(args):
         if args.epochs:
             trainer.train(train_loader, args.epochs)
 
-        trainer.predictor.calibrate(cal_loader)
-        threshold = trainer.predictor.threshold
+        if args.cc == "True":
+            trainer.predictor.calibrate(cal_loader)
+            threshold = trainer.predictor.threshold
+        else:
+            threshold=None
 
         trainer.model.calibrate(cal_loader, test_loader, threshold)
 
@@ -40,13 +43,15 @@ def standard(args):
         if seed:
             set_seed(seed + run)
 
+        cal_loader, _, test_loader = build_cal_test_loader(args)
+
         trainer = get_trainer(args)
 
+        train_loader = build_train_dataloader(args)
         if args.epochs:
-            train_loader = build_train_dataloader(args)
             trainer.train(train_loader, args.epochs)
 
-        _, _, test_loader = build_cal_test_loader(args)
+        trainer.model.calibrate(cal_loader, test_loader, None)
 
         result_dict = trainer.predictor.evaluate(test_loader)
 

@@ -5,6 +5,7 @@ from common import algorithm
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--num_runs", type=int, default=1, help="Number of runs")
+parser.add_argument("--cc", default="True", help="Conformal calibartion")
 parser.add_argument("--model", type=str, default="resnet18", help='Choose neural network architecture.')
 parser.add_argument("--dataset", type=str, default="cifar100", choices=["cifar10", "cifar100", "imagenet", "rxrx1"],
                     help="Choose dataset for training.")
