@@ -41,7 +41,7 @@ class TemperatureScaling(NaiveModel):
                 optimizer.zero_grad()
                 out = logits / self.T
                 prob = torch.softmax(out, dim=-1)
-                loss = (torch.sum(prob * conf_mask) - (1 - self.alpha) * prob.shape[0])**2
+                loss = torch.log((torch.sum(prob * conf_mask) - (1 - self.alpha) * prob.shape[0])**2)
                 loss.backward()
                 return loss
 
