@@ -18,7 +18,7 @@ class TemperatureScaling(NaiveModel):
 
         if self.args.cc == "True":
             self.T = nn.Parameter(torch.tensor([1.5]).to(self.device), requires_grad=True)
-            optimizer = optim.LBFGS([self.T], lr=0.1, max_iter=200)
+            optimizer = optim.LBFGS([self.T], lr=0.1, max_iter=500)
 
             dataloader = merge_dataloader(self.args, cal_loader, test_loader)
 
@@ -48,7 +48,7 @@ class TemperatureScaling(NaiveModel):
             optimizer.step(compute_loss)
         else:
             self.T = nn.Parameter(torch.tensor([1.5]).to(self.device), requires_grad=True)
-            optimizer = optim.LBFGS([self.T], lr=0.1, max_iter=200)
+            optimizer = optim.LBFGS([self.T], lr=0.1, max_iter=500)
             Criterion = nn.CrossEntropyLoss()
 
             logits_list= []

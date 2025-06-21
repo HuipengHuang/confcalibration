@@ -6,6 +6,7 @@ from common.utils import save_exp_result, set_seed
 
 
 def cp(args):
+    dict_list = []
     for run in range(args.num_runs):
         seed = args.seed
         if seed:
@@ -29,13 +30,19 @@ def cp(args):
         trainer.model.calibrate(cal_loader, test_loader, threshold)
 
         result_dict = trainer.predictor.evaluate(test_loader)
+        dict_list.append(result_dict)
 
-        for key, value in result_dict.items():
-            print(f'{key}: {value}')
+        #for key, value in result_dict.items():
+         #   print(f'{key}: {value}')
 
         if args.save == "True":
             save_exp_result(args, result_dict)
-
+    avg_dict = {
+        key: sum(d[key] for d in dict_list) / len(dict_list)
+        for key in dict_list[0]
+    }
+    for key, value in avg_dict.items():
+        print(f'{key}: {value}')
 
 def standard(args):
     for run in range(args.num_runs):
