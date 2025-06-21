@@ -90,7 +90,7 @@ def build_cal_test_loader(args):
 
     if args.algorithm == "standard":
         cal_loader, tune_loader= None, None
-        test_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
+        test_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=8)
     else:
         cal_size = args.cal_num
         test_size = len(val_dataset) - cal_size
