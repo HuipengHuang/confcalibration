@@ -12,6 +12,7 @@ from .net.resnet50 import ResNet50
 def build_net(device, args):
     model_type = args.model
     pretrained = (args.pretrained == "True")
+    print(pretrained)
     num_classes = args.num_classes
 
     if model_type == 'resnet18':

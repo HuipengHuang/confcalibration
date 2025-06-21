@@ -2,8 +2,7 @@ from scores.utils import get_score
 import torch
 import math
 from predictors.utils import compute_calibration_metrics
-import torch.nn as nn
-from dataset.utils import merge_dataloader
+from tqdm import tqdm
 
 
 class Predictor:
@@ -51,7 +50,7 @@ class Predictor:
         self.model.eval()
         with torch.no_grad():
             prob_tensor, label_tensor = torch.tensor([], device=self.device), torch.tensor([], device=self.device)
-            for data, target in test_loader:
+            for data, target in tqdm(test_loader, desc="Evaluating"):
                 data, target = data.to(self.device), target.to(self.device)
 
                 logit = self.model(data)
