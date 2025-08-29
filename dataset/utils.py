@@ -135,4 +135,4 @@ def merge_dataloader(args, cal_loader, test_loader):
     cal_ds = cal_loader.dataset
     test_ds = test_loader.dataset
     ds = ConcatDataset([cal_ds, test_ds])
-    return DataLoader(ds, batch_size=args.batch_size, shuffle=True)
+    return DataLoader(ds, batch_size=args.batch_size, shuffle=True, num_workers=8)

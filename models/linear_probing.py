@@ -24,21 +24,21 @@ class LinearProbing(NaiveModel):
 
         if self.args.cc == "True":
             dataloader = merge_dataloader(self.args, cal_loader, test_loader)
-            for epoch in range(10):
-                for data, target in tqdm(dataloader, desc=f"{epoch} / 100"):
-                    data, target = data.to(self.device), target.to(self.device)
-                    logits = self.net(data) @ self.T
-                    prob = torch.softmax(logits, dim=-1)
+            logits_list = []
+            label_list = []
+            with torch.no_grad():
+                for data, label in tqdm(dataloader):
+                    data, label = data.to(self.device), label.to(self.device)
+                    logit = self.net(data)
+                    logits_list.append(logit)
+                    label_list.append(label)
+                logits = torch.cat(logits_list, dim=0)
+                labels = torch.cat(label_list, dim=0)
+                prob = torch.softmax(logits, dim=-1)
+                score = self.score(prob)
+                conf_mask = score <= threshold
 
-                    score = self.score_function(prob)
-                    prediction_set = (score <= threshold).to(torch.int)
 
-                    gap = torch.sum(prob * prediction_set) - (1 - self.alpha)
-
-                    loss = gap ** 2
-                    optimizer.zero_grad()
-                    loss.backward()
-                    optimizer.step()
         else:
             self.T = nn.Parameter(torch.eye(self.args.num_classes, device=self.device), requires_grad=True)
             optimizer = optim.Adam([self.T], self.args.learning_rate)
